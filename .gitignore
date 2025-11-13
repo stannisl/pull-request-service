@@ -1,0 +1,14 @@
+# Go workspace file
+go.work
+
+# IDE
+.vscode/
+.idea/
+
+# Binary
+/bin/
+/dist/
+
+# environment files
+.env
+.env.local
