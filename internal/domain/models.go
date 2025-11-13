@@ -11,6 +11,7 @@ type (
 type User struct {
 	Id       UserID
 	Username string
+	TeamName TeamName
 	IsActive bool
 }
 
@@ -31,8 +32,8 @@ type PullRequest struct {
 	Name              string
 	AuthorID          UserID
 	Status            PullRequestStatus
-	AssignedReviewers []User
-	needMoreReviewers bool
-	createdAt         time.Time
-	mergedAt          *time.Time
+	AssignedReviewers []UserID // Храним только ID ревьюверов для упрощения
+	NeedMoreReviewers bool
+	CreatedAt         time.Time
+	MergedAt          *time.Time
 }

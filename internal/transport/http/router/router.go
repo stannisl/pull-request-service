@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stannisl/avito-test/internal/service"
+	"github.com/stannisl/avito-test/internal/transport/http/handlers"
 )
 
 type Router interface {
@@ -12,19 +13,24 @@ type Router interface {
 }
 
 type ginRouter struct {
+	//healthHandler *handlers.HealthHandler
 	router *gin.Engine
 }
 
 func New(deps service.Dependencies) Router {
-	handler := gin.New()
+	router := gin.New()
 
-	registerMiddlewares(handler)
+	healthHandler := handlers.NewHealthHandler()
 
-	// register routes
-	// handler.Group()
+	health := router.Group("/health")
+	{
+		health.GET("/", healthHandler.Check)
+	}
+
+	registerMiddlewares(router)
 
 	return &ginRouter{
-		router: handler,
+		router: router,
 	}
 }
 

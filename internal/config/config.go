@@ -21,15 +21,14 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	DSN string
+	ConnStr           string
+	Retries           int
+	RetrySecondsDelay uint
 }
 
 type HTTPServerConfig struct {
-	Host         string
-	Port         string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	IdleTimeout  time.Duration
+	Host string
+	Port string
 }
 
 func LoadConfig() (*Config, error) {
@@ -46,7 +45,9 @@ func LoadConfig() (*Config, error) {
 			Port: valueOrDefault(viper.GetString("APP_HTTP_PORT"), DefaultHTTPPort),
 		},
 		Database: DatabaseConfig{
-			DSN: viper.GetString("APP_DATABASE_DSN"),
+			ConnStr:           viper.GetString("APP_DATABASE_CONN_URL"),
+			Retries:           viper.GetInt("APP_DATABASE_RETRIES"),
+			RetrySecondsDelay: viper.GetUint("APP_DATABASE_RETRIES_SECONDS_DELAY"),
 		},
 	}, nil
 }
