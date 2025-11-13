@@ -3,42 +3,36 @@ package router
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-
-	"github.com/mostanin/avito-test/internal/config"
-	"github.com/mostanin/avito-test/internal/service"
-	handlerspkg "github.com/mostanin/avito-test/internal/transport/http/handlers"
+	"github.com/gin-gonic/gin"
+	"github.com/stannisl/avito-test/internal/service"
 )
 
 type Router interface {
 	http.Handler
 }
 
-type chiRouter struct {
-	mux *chi.Mux
+type ginRouter struct {
+	router *gin.Engine
 }
 
-func New(cfg config.Config, deps service.Dependencies) Router {
-	mux := chi.NewRouter()
-	registerMiddlewares(mux)
+func New(deps service.Dependencies) Router {
+	handler := gin.New()
 
-	handlers := handlerspkg.New(deps)
-	handlers.Mount(mux)
+	registerMiddlewares(handler)
 
-	return &chiRouter{
-		mux: mux,
+	// register routes
+	// handler.Group()
+
+	return &ginRouter{
+		router: handler,
 	}
 }
 
-func registerMiddlewares(mux *chi.Mux) {
-	mux.Use(middleware.RequestID)
-	mux.Use(middleware.RealIP)
-	mux.Use(middleware.Logger)
-	mux.Use(middleware.Recoverer)
-	mux.Use(middleware.AllowContentType("application/json"))
+func registerMiddlewares(engine *gin.Engine) {
+	engine.Use(gin.Logger())
+	engine.Use(gin.Recovery())
 }
 
-func (r *chiRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.mux.ServeHTTP(w, req)
+func (r *ginRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	r.router.ServeHTTP(w, req)
 }

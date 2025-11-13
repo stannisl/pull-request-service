@@ -3,22 +3,26 @@ package service
 import (
 	"context"
 
-	"github.com/mostanin/avito-test/internal/domain"
+	"github.com/stannisl/avito-test/internal/domain"
 )
 
 type UserService interface {
-	SetActiveFlag(ctx context.Context, userID domain.UserID, isActive bool) (domain.User, error)
+	SetIsActive(ctx context.Context, userID domain.UserID, isActive bool) error
+	GetReview(ctx context.Context, userID domain.UserID) (*domain.User, error)
 }
 
-func NewUserServiceStub() UserService {
-	return &userServiceStub{}
+type userService struct{}
+
+func (u *userService) SetIsActive(ctx context.Context, userID domain.UserID, isActive bool) error {
+	//TODO implement me
+	panic("implement me")
 }
 
-type userServiceStub struct{}
+func (u *userService) GetReview(ctx context.Context, userID domain.UserID) (*domain.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
 
-func (s *userServiceStub) SetActiveFlag(ctx context.Context, userID domain.UserID, isActive bool) (domain.User, error) {
-	return domain.User{
-		ID:       userID,
-		IsActive: isActive,
-	}, nil
+func NewUserService() UserService {
+	return &userService{}
 }

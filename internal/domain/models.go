@@ -9,18 +9,17 @@ type (
 )
 
 type User struct {
-	ID       UserID
+	Id       UserID
 	Username string
-	Team     TeamName
 	IsActive bool
 }
 
 type Team struct {
-	Name    TeamName
+	Name    string
 	Members []User
 }
 
-type PullRequestStatus string
+type PullRequestStatus = string
 
 const (
 	PullRequestStatusOpen   PullRequestStatus = "OPEN"
@@ -32,7 +31,8 @@ type PullRequest struct {
 	Name              string
 	AuthorID          UserID
 	Status            PullRequestStatus
-	AssignedReviewers []UserID
-	CreatedAt         time.Time
-	MergedAt          *time.Time
+	AssignedReviewers []User
+	needMoreReviewers bool
+	createdAt         time.Time
+	mergedAt          *time.Time
 }

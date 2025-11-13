@@ -2,17 +2,26 @@ package config
 
 import (
 	"fmt"
-	"os"
+	"log"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 const (
+	DefaultShutdownTimeout = 10 * time.Second
+
 	DefaultHTTPHost = "0.0.0.0"
 	DefaultHTTPPort = "8080"
 )
 
 type Config struct {
 	HTTPServer HTTPServerConfig
+	Database   DatabaseConfig
+}
+
+type DatabaseConfig struct {
+	DSN string
 }
 
 type HTTPServerConfig struct {
@@ -23,26 +32,21 @@ type HTTPServerConfig struct {
 	IdleTimeout  time.Duration
 }
 
-func MustLoad() Config {
-	cfg, err := Load()
-	if err != nil {
-		panic(err)
+func LoadConfig() (*Config, error) {
+
+	viper.SetConfigFile(".env")
+	if err := viper.ReadInConfig(); err != nil {
+		log.Println("No .env file found, fallback to system env")
 	}
+	viper.AutomaticEnv()
 
-	return cfg
-}
-
-func Load() (Config, error) {
-	host := valueOrDefault(os.Getenv("HTTP_HOST"), DefaultHTTPHost)
-	port := valueOrDefault(os.Getenv("HTTP_PORT"), DefaultHTTPPort)
-
-	return Config{
+	return &Config{
 		HTTPServer: HTTPServerConfig{
-			Host:         host,
-			Port:         port,
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 5 * time.Second,
-			IdleTimeout:  60 * time.Second,
+			Host: valueOrDefault(viper.GetString("APP_HTTP_HOST"), DefaultHTTPHost),
+			Port: valueOrDefault(viper.GetString("APP_HTTP_PORT"), DefaultHTTPPort),
+		},
+		Database: DatabaseConfig{
+			DSN: viper.GetString("APP_DATABASE_DSN"),
 		},
 	}, nil
 }

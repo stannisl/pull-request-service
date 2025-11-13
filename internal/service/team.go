@@ -3,24 +3,26 @@ package service
 import (
 	"context"
 
-	"github.com/mostanin/avito-test/internal/domain"
+	"github.com/stannisl/avito-test/internal/domain"
 )
 
 type TeamService interface {
-	CreateTeam(ctx context.Context, team domain.Team) (domain.Team, error)
-	GetTeam(ctx context.Context, teamName domain.TeamName) (domain.Team, error)
+	CreateTeam(ctx context.Context, team domain.Team) (*domain.Team, error)
+	GetTeam(ctx context.Context, name domain.TeamName) (*domain.Team, error)
 }
 
-func NewTeamServiceStub() TeamService {
-	return &teamServiceStub{}
+type teamService struct{}
+
+func (t *teamService) CreateTeam(ctx context.Context, team domain.Team) (*domain.Team, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
-type teamServiceStub struct{}
-
-func (s *teamServiceStub) CreateTeam(ctx context.Context, team domain.Team) (domain.Team, error) {
-	return team, nil
+func (t *teamService) GetTeam(ctx context.Context, name domain.TeamName) (*domain.Team, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (s *teamServiceStub) GetTeam(ctx context.Context, teamName domain.TeamName) (domain.Team, error) {
-	return domain.Team{Name: teamName}, nil
+func NewTeamService() TeamService {
+	return &teamService{}
 }
