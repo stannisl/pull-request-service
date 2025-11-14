@@ -13,6 +13,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stannisl/avito-test/internal/config"
+	"github.com/stannisl/avito-test/internal/server"
 	"github.com/stannisl/avito-test/internal/service"
 	"github.com/stannisl/avito-test/internal/transport/http/router"
 	"github.com/stannisl/avito-test/pkg/db"
@@ -83,26 +84,32 @@ func (a *App) Setup(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) StartAndServe(ctx context.Context) error {
-	// closing connection
+func (a *App) StartAndServeHTTP(ctx context.Context) error {
+	// closing pool of connections
+	defer a.pool.Close()
 
-	a.server = &http.Server{
-		Addr:    a.Config.HTTPServer.Address(),
-		Handler: a.router,
+	serv, timeout, err := server.NewBuilder().
+		WithHandler(a.router).
+		WithHost(a.Config.HTTPServer.Host).
+		WithPort(a.Config.HTTPServer.Port).
+		Build()
+	if err != nil {
+		return err
 	}
+	a.server = serv
 
 	go func() {
-		log.Printf("HTTP server listening on %s", a.Config.HTTPServer.Address())
+		log.Printf("HTTP server listening on %s", a.server.Addr)
 		if err := a.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("http server failed: %v", err)
 		}
 	}()
 
-	waitForShutdown() // Block main goroutine
+	waitForShutdown() // block main goroutine
 
 	log.Println("Gracefully shutting down...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), config.DefaultShutdownTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	return a.server.Shutdown(ctx)

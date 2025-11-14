@@ -15,7 +15,7 @@ func main() {
 		log.Fatalf("failed to initialize application: %v", err)
 	}
 
-	err = application.StartAndServe(context.Background())
+	err = application.StartAndServeHTTP(context.Background())
 	if err != nil {
 		log.Printf("Failed to start application: %v", err)
 	}

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -9,10 +8,13 @@ import (
 )
 
 const (
-	DefaultShutdownTimeout = 10 * time.Second
+	// Default Server Fields
 
-	DefaultHTTPHost = "0.0.0.0"
-	DefaultHTTPPort = "8080"
+	DefaultReadTimeout     = 5 * time.Second
+	DefaultWriteTimeout    = 10 * time.Second
+	DefaultShutdownTimeout = 15 * time.Second
+	DefaultHTTPHost        = "0.0.0.0"
+	DefaultHTTPPort        = "8080"
 )
 
 type Config struct {
@@ -50,10 +52,6 @@ func LoadConfig() (*Config, error) {
 			RetrySecondsDelay: viper.GetUint("APP_DATABASE_RETRIES_SECONDS_DELAY"),
 		},
 	}, nil
-}
-
-func (c HTTPServerConfig) Address() string {
-	return fmt.Sprintf("%s:%s", c.Host, c.Port)
 }
 
 func valueOrDefault(value, fallback string) string {
