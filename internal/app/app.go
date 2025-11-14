@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jmoiron/sqlx"
 	"github.com/stannisl/avito-test/internal/config"
 	"github.com/stannisl/avito-test/internal/server"
 	"github.com/stannisl/avito-test/internal/service"
@@ -23,48 +23,50 @@ type App struct {
 	router router.Router
 
 	server *http.Server
-	pool   *pgxpool.Pool
+	db     *sqlx.DB
 	Config *config.Config
 }
 
 func (a *App) Setup(ctx context.Context) error {
-	if ctx == nil {
-		return fmt.Errorf("context is required")
-	}
 
 	// getting config
 	appConfig, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Error reading config file, %s", err)
+		return fmt.Errorf("error reading config file, %s", err)
 	}
 	a.Config = appConfig
+	log.Println("Configuration loaded")
 
 	pool, err := db.ConnectPoolWithRetry(
-		ctx, a.Config.Database.ConnStr,
-		a.Config.Database.Retries,
-		time.Second*time.Duration(a.Config.Database.RetrySecondsDelay))
+		ctx, &db.OptionsDB{
+			ConnStr:       a.Config.Database.ConnStr,
+			MaxRetries:    a.Config.Database.Retries,
+			RetryInterval: time.Second * time.Duration(a.Config.Database.RetrySecondsDelay),
+			DriverName:    a.Config.Database.DriverName,
+		})
 	if err != nil {
-		log.Fatalf("Error connecting to database, %s", err)
+		return fmt.Errorf("error connecting to database, %s", err)
 	}
-	a.pool = pool
+	a.db = pool
+	log.Println("Connection pool created")
 
 	// Getting conn for migration
-	conn, releaseConn, err := db.GetConnFromPool(ctx, a.pool)
+	conn, releaseConn, err := db.GetConnFromPool(ctx, a.db)
 	if err != nil {
-		log.Fatalf("Error connecting to database, %s", err)
+		return fmt.Errorf("error connecting to database, %s", err)
 	}
-	defer releaseConn()
+	defer func() {
+		if err := releaseConn(); err != nil {
+			log.Printf("Error migration conn from database, %s\n", err)
+		}
+	}()
 
+	migrator := db.NewMigrator(conn, releaseConn)
 	// Run migrations
-	if err := db.RunMigrations(ctx, conn.Conn()); err != nil {
-		log.Fatalf("Error running migrations: %s", err)
+	if err := migrator.Run(ctx); err != nil {
+		return fmt.Errorf("error running migrations: %s", err)
 	}
-
-	migrationVersion, err := db.GetMigrationVersion(ctx, conn.Conn())
-	if err != nil {
-		log.Fatalf("Error getting db version: %s", err)
-	}
-	log.Printf("Latest Migration version: %v\n", migrationVersion)
+	log.Println("Migrations applied")
 
 	// Initing components
 	//repositories := repository.Dependencies{
@@ -80,13 +82,19 @@ func (a *App) Setup(ctx context.Context) error {
 	}
 
 	a.router = router.New(services)
+	log.Println("Router created")
 
 	return nil
 }
 
 func (a *App) StartAndServeHTTP(ctx context.Context) error {
-	// closing pool of connections
-	defer a.pool.Close()
+	// closing db of connections
+	defer func(db *sqlx.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Printf("Error closing database connection pool, %s\n", err)
+		}
+	}(a.db)
 
 	serv, timeout, err := server.NewBuilder().
 		WithHandler(a.router).
@@ -94,9 +102,12 @@ func (a *App) StartAndServeHTTP(ctx context.Context) error {
 		WithPort(a.Config.HTTPServer.Port).
 		Build()
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating http server, %s", err)
 	}
 	a.server = serv
+	log.Println("Server build successful")
+
+	// TODO добавить закрытие сервера при ошибке от ListenAndServe
 
 	go func() {
 		log.Printf("HTTP server listening on %s", a.server.Addr)

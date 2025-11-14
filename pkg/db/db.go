@@ -2,41 +2,49 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
-// ConnectPoolWithRetry пытается подключиться к БД с повторными попытками
-func ConnectPoolWithRetry(ctx context.Context, connStr string, maxRetries int, retryInterval time.Duration) (*pgxpool.Pool, error) {
+type OptionsDB struct {
+	ConnStr       string
+	MaxRetries    int
+	RetryInterval time.Duration
+	DriverName    string
+}
 
-	var pool *pgxpool.Pool
+// ConnectPoolWithRetry пытается подключиться к бд с повторными попытками
+func ConnectPoolWithRetry(ctx context.Context, opts *OptionsDB) (*sqlx.DB, error) {
+	var db *sqlx.DB
 	var err error
 
-	for i := 0; i < maxRetries; i++ {
-		pool, err = pgxpool.New(ctx, connStr)
+	for i := 0; i < opts.MaxRetries; i++ {
+		db, err = sqlx.ConnectContext(ctx, opts.DriverName, opts.ConnStr)
 		if err == nil {
-			return pool, nil
+			return db, nil
 		}
 
-		if i < maxRetries-1 {
-			log.Printf("Failed to connect to database (attempt %d/%d): %v. Retrying in %v...", i+1, maxRetries, err, retryInterval)
-			time.Sleep(retryInterval)
+		if i < opts.MaxRetries-1 {
+			log.Printf("Failed to connect to database (attempt %d/%d): %v. Retrying in %v...", i+1, opts.MaxRetries, err, opts.RetryInterval)
+			time.Sleep(opts.RetryInterval)
 		}
 	}
 
-	return nil, fmt.Errorf("failed to connect after %d attempts: %w", maxRetries, err)
+	return nil, fmt.Errorf("failed to connect after %d attempts: %w", opts.MaxRetries, err)
 }
 
-type ReleaseFunc func()
+type ReleaseFunc func() error
 
-func GetConnFromPool(ctx context.Context, pool *pgxpool.Pool) (*pgxpool.Conn, ReleaseFunc, error) {
-	conn, err := pool.Acquire(ctx)
+func GetConnFromPool(ctx context.Context, pool *sqlx.DB) (*sql.Conn, ReleaseFunc, error) {
+	conn, err := pool.Conn(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return conn, func() { conn.Release() }, nil
+	return conn, func() error { return conn.Close() }, nil
 }

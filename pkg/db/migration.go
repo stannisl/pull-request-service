@@ -5,82 +5,64 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"log"
-
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/pressly/goose/v3"
-	_ "github.com/stannisl/avito-test/pkg/db/migrations" // Импортируем для регистрации Go-миграций
+	"strings"
 )
 
-//go:embed migrations
-var migrationsFS embed.FS
+//go:embed migrations/SCHEMA.sql
+var schemaFS embed.FS
 
-// RunMigrations выполняет все миграции из директории migrations используя goose
-func RunMigrations(ctx context.Context, conn *pgx.Conn) error {
+//go:embed migrations/DROP_SCHEMA.sql
+var dropSchemaFS embed.FS
 
-	config := conn.Config()
-	sqlDB := stdlib.OpenDB(*config)
-	defer func(sqlDB *sql.DB) {
-		err := sqlDB.Close()
-		if err != nil {
-			log.Fatalf("error closing DB conn: %v", err)
-		}
-	}(sqlDB)
-
-	goose.SetBaseFS(migrationsFS)
-
-	migrationsDir := "migrations"
-
-	if err := goose.Up(sqlDB, migrationsDir); err != nil {
-		return fmt.Errorf("failed to run migrations: %w", err)
-	}
-
-	return nil
+type Migrator struct {
+	conn      *sql.Conn
+	closeFunc ReleaseFunc
 }
 
-// GetMigrationVersion возвращает текущую версию миграции
-func GetMigrationVersion(ctx context.Context, conn *pgx.Conn) (int64, error) {
-	config := conn.Config()
-	sqlDB := stdlib.OpenDB(*config)
-	defer sqlDB.Close()
+func NewMigrator(conn *sql.Conn, closeFunc ReleaseFunc) *Migrator {
+	return &Migrator{
+		conn:      conn,
+		closeFunc: closeFunc,
+	}
+}
 
-	goose.SetBaseFS(migrationsFS)
+func (m *Migrator) Close() {
+	m.closeFunc()
+	m.conn = nil
+}
 
-	version, err := goose.GetDBVersion(sqlDB)
+// Run создает схему из migrations/SCHEMA.sql
+func (m *Migrator) Run(ctx context.Context) error {
+	if m.conn == nil {
+		return fmt.Errorf("conn is closed")
+	}
+
+	schemaSQL, err := schemaFS.ReadFile("migrations/SCHEMA.sql")
+
 	if err != nil {
-		return 0, fmt.Errorf("failed to get db version: %w", err)
+		return fmt.Errorf("failed to read schema: %w", err)
 	}
 
-	return version, nil
-}
+	queries := strings.Split(string(schemaSQL), ";")
 
-func Down(ctx context.Context, conn *pgx.Conn) error {
-	config := conn.Config()
-	sqlDB := stdlib.OpenDB(*config)
-	defer sqlDB.Close()
+	for _, query := range queries {
+		tx, err := m.conn.BeginTx(ctx, nil)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
 
-	goose.SetBaseFS(migrationsFS)
-	migrationsDir := "migrations"
+		_, err = tx.ExecContext(ctx, query)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to execute query: %w", err)
+		}
 
-	if err := goose.Down(sqlDB, migrationsDir); err != nil {
-		return fmt.Errorf("failed to rollback db: %w", err)
+		err = tx.Commit()
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
 	}
-
-	return nil
-}
-
-func Status(ctx context.Context, conn *pgx.Conn) error {
-	config := conn.Config()
-	sqlDB := stdlib.OpenDB(*config)
-	defer sqlDB.Close()
-
-	goose.SetBaseFS(migrationsFS)
-	migrationsDir := "migrations"
-
-	if err := goose.Status(sqlDB, migrationsDir); err != nil {
-		return fmt.Errorf("failed to get db status: %w", err)
-	}
-
 	return nil
 }

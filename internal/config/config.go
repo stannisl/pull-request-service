@@ -25,7 +25,8 @@ type Config struct {
 type DatabaseConfig struct {
 	ConnStr           string
 	Retries           int
-	RetrySecondsDelay uint
+	RetrySecondsDelay int
+	DriverName        string
 }
 
 type HTTPServerConfig struct {
@@ -49,7 +50,8 @@ func LoadConfig() (*Config, error) {
 		Database: DatabaseConfig{
 			ConnStr:           viper.GetString("APP_DATABASE_CONN_URL"),
 			Retries:           viper.GetInt("APP_DATABASE_RETRIES"),
-			RetrySecondsDelay: viper.GetUint("APP_DATABASE_RETRIES_SECONDS_DELAY"),
+			RetrySecondsDelay: viper.GetInt("APP_DATABASE_RETRIES_SECONDS_DELAY"),
+			DriverName:        viper.GetString("APP_DATABASE_DRIVER_NAME"),
 		},
 	}, nil
 }
