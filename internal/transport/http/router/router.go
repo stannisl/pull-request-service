@@ -22,16 +22,22 @@ func New(deps service.Dependencies) Router {
 
 	healthHandler := handlers.NewHealthHandler()
 	teamHandler := handlers.NewTeamHandler(deps.TeamService)
+	pullRequestHandler := handlers.NewPullRequestHandler(deps.PullRequestService)
 
 	health := router.Group("/health")
 	{
-		health.GET("/", healthHandler.Check)
+		health.GET("", healthHandler.Check)
 	}
 
 	team := router.Group("/team")
 	{
 		team.GET("/get", teamHandler.GetTeam)
 		team.POST("/add", teamHandler.AddTeam)
+	}
+
+	pullRequest := router.Group("/pullRequest")
+	{
+		pullRequest.POST("/create", pullRequestHandler.Create)
 	}
 
 	return &ginRouter{

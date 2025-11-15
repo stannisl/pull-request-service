@@ -1,0 +1,22 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+issues:
+  max-same-issues: 0
+  max-issues-per-linter: 0
+
+linters:
+  enable:
+    - govet # официальный статический линтер Go
+    - staticcheck # расширенный статический анализ: ошибки, неэффективные конструкции, deprecated
+    - errcheck # проверяет, что ошибки из функций обрабатываются.
+    - unused # проверка на неиспользуемые переменные, функции, импорты
+    - dupl # находит дупликаты
+    - goconst # ищет повторяющиеся строковые или числовые литералы, предлагая вынести их в константы
+    - unparam # находит параметры функций, которые никогда не используются
+    - whitespace # тест на двойные пробелы, trailing spaces
+    - lll # на длину строк

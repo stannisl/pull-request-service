@@ -55,6 +55,12 @@ func (t *teamRepository) GetTeam(ctx context.Context, name domain.TeamName) (*do
 }
 
 func (t *teamRepository) TeamExists(ctx context.Context, name domain.TeamName) (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	query := `SELECT * FROM teams WHERE name = $1`
+	var team domain.Team
+
+	err := t.db.GetContext(ctx, &team, query, name)
+	if err != nil {
+		return false, err
+	}
+	return team.Name == name, nil
 }

@@ -28,12 +28,12 @@ const (
 )
 
 type PullRequest struct {
-	ID                PRID
-	Name              string
-	AuthorID          UserID
-	Status            PullRequestStatus
-	AssignedReviewers []UserID // Храним только ID ревьюверов для упрощения
-	NeedMoreReviewers bool
-	CreatedAt         time.Time
-	MergedAt          *time.Time
+	ID                PRID              `db:"id"`
+	Name              string            `db:"name"`
+	AuthorID          UserID            `db:"author_id"`
+	Status            PullRequestStatus `db:"status"`
+	AssignedReviewers []UserID          `db:"assigned_reviewers"`
+	NeedMoreReviewers bool              `db:"need_more_reviewers"`
+	CreatedAt         time.Time         `db:"created_at"`
+	MergedAt          *time.Time        `db:"merged_at"`
 }

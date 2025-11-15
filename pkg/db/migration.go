@@ -14,11 +14,13 @@ var schemaFS embed.FS
 //go:embed migrations/DROP_SCHEMA.sql
 var dropSchemaFS embed.FS
 
+// Migrator применяет схему базы данных
 type Migrator struct {
 	conn      *sql.Conn
 	closeFunc ReleaseFunc
 }
 
+// NewMigrator создает инстанс мигратора
 func NewMigrator(conn *sql.Conn, closeFunc ReleaseFunc) *Migrator {
 	return &Migrator{
 		conn:      conn,
@@ -26,11 +28,13 @@ func NewMigrator(conn *sql.Conn, closeFunc ReleaseFunc) *Migrator {
 	}
 }
 
+// Close закрывает соединение мигратора
 func (m *Migrator) Close() {
 	m.closeFunc()
 	m.conn = nil
 }
 
+// Drop роняет базу данных
 func (m *Migrator) Drop(ctx context.Context) error {
 	if m.conn == nil {
 		return fmt.Errorf("conn is closed")

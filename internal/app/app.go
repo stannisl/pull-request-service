@@ -29,7 +29,6 @@ type App struct {
 }
 
 func (a *App) Setup(ctx context.Context) error {
-
 	// getting config
 	appConfig, err := config.LoadConfig()
 	if err != nil {
@@ -65,7 +64,7 @@ func (a *App) Setup(ctx context.Context) error {
 	migrator := db.NewMigrator(conn, releaseConn)
 	// Run migrations
 
-	// WARNING
+	// WARNING REMOVE ON PROD
 	migrator.Drop(ctx)
 	// WARNING
 
@@ -81,9 +80,13 @@ func (a *App) Setup(ctx context.Context) error {
 	}
 
 	services := service.Dependencies{
-		TeamService:        service.NewTeamService(repositories.UserRepository, repositories.TeamRepository),
-		UserService:        service.NewUserService(),
-		PullRequestService: service.NewPullRequestService(),
+		TeamService: service.NewTeamService(repositories.UserRepository, repositories.TeamRepository),
+		UserService: service.NewUserService(),
+		PullRequestService: service.NewPullRequestService(
+			repositories.PullRequestRepository,
+			repositories.UserRepository,
+			repositories.TeamRepository,
+		),
 	}
 
 	a.router = router.New(services)
@@ -125,7 +128,7 @@ func (a *App) StartAndServeHTTP(ctx context.Context) error {
 
 	log.Println("Gracefully shutting down...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	return a.server.Shutdown(ctx)

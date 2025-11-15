@@ -21,5 +21,4 @@ func (u *User) ToModel() domain.User {
 		Username: u.Username,
 		IsActive: u.IsActive,
 	}
-
 }

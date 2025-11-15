@@ -35,7 +35,6 @@ type HTTPServerConfig struct {
 }
 
 func LoadConfig() (*Config, error) {
-
 	viper.SetConfigFile(".env")
 	if err := viper.ReadInConfig(); err != nil {
 		log.Println("No .env file found, fallback to system env")

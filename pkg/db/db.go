@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // Драйвер для postgres
 )
 
+// OptionsDB настройки базы данных
 type OptionsDB struct {
 	ConnStr       string
 	MaxRetries    int
@@ -30,7 +31,13 @@ func ConnectPoolWithRetry(ctx context.Context, opts *OptionsDB) (*sqlx.DB, error
 		}
 
 		if i < opts.MaxRetries-1 {
-			log.Printf("Failed to connect to database (attempt %d/%d): %v. Retrying in %v...", i+1, opts.MaxRetries, err, opts.RetryInterval)
+			log.Printf(
+				"Failed to connect to database (attempt %d/%d): %v. Retrying in %v...",
+				i+1,
+				opts.MaxRetries,
+				err,
+				opts.RetryInterval,
+			)
 			time.Sleep(opts.RetryInterval)
 		}
 	}
@@ -40,6 +47,7 @@ func ConnectPoolWithRetry(ctx context.Context, opts *OptionsDB) (*sqlx.DB, error
 
 type ReleaseFunc func() error
 
+// GetConnFromPool берет 1 соединение из пула соединений
 func GetConnFromPool(ctx context.Context, pool *sqlx.DB) (*sql.Conn, ReleaseFunc, error) {
 	conn, err := pool.Conn(ctx)
 	if err != nil {

@@ -14,8 +14,13 @@ type UserRepository interface {
 	// GetUser возвращает пользователя по ID
 	GetUser(ctx context.Context, userID domain.UserID) (*domain.User, error)
 
-	// GetActiveUsersByTeam возвращает активных пользователей команды (исключая указанного)
-	GetActiveUsersByTeam(ctx context.Context, teamName domain.TeamName, excludeUserID domain.UserID) ([]domain.User, error)
+	// GetActiveUsersByTeamWithLimit возвращает активных пользователей команды (исключая указанного)
+	GetActiveUsersByTeamWithLimit(
+		ctx context.Context,
+		teamName domain.TeamName,
+		excludeUserID domain.UserID,
+		limit int,
+	) ([]domain.User, error)
 
 	// SetIsActive устанавливает флаг активности пользователя
 	SetIsActive(ctx context.Context, userID domain.UserID, isActive bool) error
@@ -69,9 +74,34 @@ func (u *userRepository) GetUser(ctx context.Context, userID domain.UserID) (*do
 	return &user, nil
 }
 
-func (u *userRepository) GetActiveUsersByTeam(ctx context.Context, teamName domain.TeamName, excludeUserID domain.UserID) ([]domain.User, error) {
-	//TODO implement me
-	panic("implement me")
+func (u *userRepository) GetActiveUsersByTeamWithLimit(
+	ctx context.Context,
+	teamName domain.TeamName,
+	excludeUserID domain.UserID,
+	limit int,
+) ([]domain.User, error) {
+	rawQuery := `SELECT * FROM users WHERE team_name = $1 AND is_active = true AND id <> $2 ORDER BY random()`
+
+	var (
+		query string
+		args  []any
+	)
+
+	if limit >= 0 {
+		query = rawQuery + " LIMIT $3"
+		args = []any{teamName, excludeUserID, limit}
+	} else {
+		query = rawQuery
+		args = []any{teamName, excludeUserID}
+	}
+
+	var users []domain.User
+
+	if err := u.conn.SelectContext(ctx, &users, query, args...); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (u *userRepository) SetIsActive(ctx context.Context, userID domain.UserID, isActive bool) error {
