@@ -1,76 +1,61 @@
+// internal/repository/user.go
 package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stannisl/avito-test/internal/domain"
+	"github.com/stannisl/avito-test/pkg/db"
 )
 
 type UserRepository interface {
-	// CreateOrUpdateUser создает или обновляет пользователя
 	CreateOrUpdateUser(ctx context.Context, user *domain.User) error
-
-	// GetUser возвращает пользователя по ID
 	GetUser(ctx context.Context, userID domain.UserID) (*domain.User, error)
-
-	// GetActiveUsersByTeamWithLimit возвращает активных пользователей команды (исключая указанного)
 	GetActiveUsersByTeamWithLimit(
 		ctx context.Context,
 		teamName domain.TeamName,
-		excludeUserID []domain.UserID,
+		excludeUserIDs []domain.UserID,
 		limit int,
 	) ([]domain.User, error)
-
-	// SetIsActive устанавливает флаг активности пользователя
 	SetIsActive(ctx context.Context, userID domain.UserID, isActive bool) error
-
-	// GetUsersByTeam возвращает всех пользователей команды
 	GetUsersByTeam(ctx context.Context, teamName domain.TeamName) ([]domain.User, error)
 }
 
 type userRepository struct {
-	conn *sqlx.DB
+	*BaseRepository
 }
 
-func NewUserRepository(conn *sqlx.DB) UserRepository {
+func NewUserRepository(db *sqlx.DB, txManager db.TransactionManager) UserRepository {
 	return &userRepository{
-		conn: conn,
+		BaseRepository: NewBaseRepository(db, txManager),
 	}
 }
 
 func (u *userRepository) CreateOrUpdateUser(ctx context.Context, user *domain.User) error {
-	query := `INSERT INTO users (id, username, team_name, is_active) VALUES (:id, :username, :team_name, :is_active)`
+	return u.WithTransaction(ctx, func(ctx context.Context) error {
+		query := `INSERT INTO users (id, username, team_name, is_active) VALUES ($1, $2, $3, $4) 
+                 ON CONFLICT (id) DO UPDATE SET username = $2, team_name = $3, is_active = $4`
 
-	tx, err := u.conn.BeginTxx(ctx, nil)
-	if err != nil {
-		errTr := tx.Rollback()
-		if errTr != nil {
-			return errTr
-		}
+		executor := u.GetExecutor(ctx)
+		_, err := executor.ExecContext(ctx, query, user.Id, user.Username, user.TeamName, user.IsActive)
 		return err
-	}
-
-	if _, err = tx.NamedExecContext(ctx, query, user); err != nil {
-		errTr := tx.Rollback()
-		if errTr != nil {
-			return errTr
-		}
-		return err
-	}
-
-	return tx.Commit()
+	})
 }
 
 func (u *userRepository) GetUser(ctx context.Context, userID domain.UserID) (*domain.User, error) {
-	query := `SELECT (id, username, team_name, is_active) FROM users WHERE id = $1`
-
+	query := `SELECT id, username, team_name, is_active FROM users WHERE id = $1`
 	var user domain.User
 
-	if err := u.conn.Get(&user, query, userID); err != nil {
+	executor := u.GetExecutor(ctx)
+	err := sqlx.GetContext(ctx, executor, &user, query, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, domain.ErrEntityNotFound
+		}
 		return nil, err
 	}
 
@@ -80,35 +65,32 @@ func (u *userRepository) GetUser(ctx context.Context, userID domain.UserID) (*do
 func (u *userRepository) GetActiveUsersByTeamWithLimit(
 	ctx context.Context,
 	teamName domain.TeamName,
-	excludeUserID []domain.UserID,
+	excludeUserIDs []domain.UserID,
 	limit int,
 ) ([]domain.User, error) {
-	rawQuery := `SELECT (id, username, team_name, is_active) FROM users WHERE team_name = $1 AND is_active = true AND`
-	var (
-		query string
-		args  = []any{teamName}
-	)
+	baseQuery := `SELECT id, username, team_name, is_active FROM users WHERE team_name = $1 AND is_active = true`
+	args := []any{teamName}
 
-	usersVariables := make([]string, len(excludeUserID))
-	for i, userID := range excludeUserID {
-		usersVariables[i] = fmt.Sprintf("$%d", len(args)+1)
-		args = append(args, userID)
+	if len(excludeUserIDs) > 0 {
+		placeholders := make([]string, len(excludeUserIDs))
+		for i, id := range excludeUserIDs {
+			placeholders[i] = fmt.Sprintf("$%d", len(args)+1)
+			args = append(args, id)
+		}
+		baseQuery += fmt.Sprintf(" AND id NOT IN (%s)", strings.Join(placeholders, ", "))
 	}
 
-	usersExcluding := fmt.Sprintf(" id NOT IN (%s) ORDER BY random()", strings.Join(usersVariables, ", "))
+	baseQuery += " ORDER BY random()"
 
-	if limit >= 0 {
-		query = rawQuery + usersExcluding + " LIMIT $3"
+	if limit > 0 {
+		baseQuery += fmt.Sprintf(" LIMIT $%d", len(args)+1)
 		args = append(args, limit)
-	} else {
-		query = rawQuery + usersExcluding
 	}
-
-	log.Println(query, args)
 
 	var users []domain.User
-
-	if err := u.conn.SelectContext(ctx, &users, query, args...); err != nil {
+	executor := u.GetExecutor(ctx)
+	err := sqlx.SelectContext(ctx, executor, &users, baseQuery, args...)
+	if err != nil {
 		return nil, err
 	}
 
@@ -116,30 +98,21 @@ func (u *userRepository) GetActiveUsersByTeamWithLimit(
 }
 
 func (u *userRepository) SetIsActive(ctx context.Context, userID domain.UserID, isActive bool) error {
-	query := `UPDATE users SET is_active = $1 WHERE id = $2`
+	return u.WithTransaction(ctx, func(ctx context.Context) error {
+		query := `UPDATE users SET is_active = $1 WHERE id = $2`
+		executor := u.GetExecutor(ctx)
 
-	tx, err := u.conn.BeginTxx(ctx, nil)
-	if err != nil {
-		tx.Rollback()
+		_, err := executor.ExecContext(ctx, query, isActive, userID)
 		return err
-	}
-
-	if _, err := tx.ExecContext(ctx, query, isActive, userID); err != nil {
-		errTr := tx.Rollback()
-		if errTr != nil {
-			return errTr
-		}
-		return err
-	}
-
-	return tx.Commit()
+	})
 }
 
 func (u *userRepository) GetUsersByTeam(ctx context.Context, teamName domain.TeamName) ([]domain.User, error) {
-	query := `SELECT (id, username, team_name, is_active) FROM users WHERE team_name = $1`
+	query := `SELECT id, username, team_name, is_active FROM users WHERE team_name = $1`
 	var users []domain.User
 
-	err := u.conn.SelectContext(ctx, &users, query, teamName)
+	executor := u.GetExecutor(ctx)
+	err := sqlx.SelectContext(ctx, executor, &users, query, teamName)
 	if err != nil {
 		return nil, err
 	}

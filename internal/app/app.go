@@ -73,12 +73,13 @@ func (a *App) Setup(ctx context.Context) error {
 	}
 	log.Println("Migrations applied")
 
-	repositories := repository.Dependencies{
-		PullRequestRepository: repository.NewPullRequestRepository(a.db),
-		TeamRepository:        repository.NewTeamRepository(a.db),
-		UserRepository:        repository.NewUserRepository(a.db),
-	}
+	txManager := db.NewTransactionManager(a.db)
 
+	repositories := repository.Dependencies{
+		PullRequestRepository: repository.NewPullRequestRepository(a.db, txManager),
+		TeamRepository:        repository.NewTeamRepository(a.db, txManager),
+		UserRepository:        repository.NewUserRepository(a.db, txManager),
+	}
 	services := service.Dependencies{
 		TeamService: service.NewTeamService(repositories.UserRepository, repositories.TeamRepository),
 		UserService: service.NewUserService(repositories.UserRepository, repositories.PullRequestRepository),
