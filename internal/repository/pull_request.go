@@ -72,6 +72,20 @@ func (p *pullRequestRepository) GetByID(ctx context.Context, prID domain.PRID) (
 		return nil, err
 	}
 
+	getReviewers := `
+		SELECT reviewer_id
+		FROM pull_request_reviewers
+		WHERE pull_request_id = $1
+		ORDER BY reviewer_id
+	`
+
+	var reviewers []domain.UserID
+	if err := p.db.SelectContext(ctx, &reviewers, getReviewers, prID); err != nil {
+		return nil, err
+	}
+
+	pr.AssignedReviewers = reviewers
+
 	return &pr, nil
 }
 
@@ -87,10 +101,29 @@ func (p *pullRequestRepository) Update(ctx context.Context, pr *domain.PullReque
 		return err
 	}
 
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
 	_, err = tx.NamedExecContext(ctx, query, pr)
 	if err != nil {
-		tx.Rollback()
 		return err
+	}
+
+	delQuery := `DELETE FROM pull_request_reviewers WHERE pull_request_id = $1`
+	if _, err = tx.ExecContext(ctx, delQuery, pr.ID); err != nil {
+		return err
+	}
+
+	if len(pr.AssignedReviewers) > 0 {
+		insertQuery := `INSERT INTO pull_request_reviewers (pull_request_id, reviewer_id) VALUES ($1, $2)`
+		for _, r := range pr.AssignedReviewers {
+			if _, err = tx.ExecContext(ctx, insertQuery, pr.ID, r); err != nil {
+				return err
+			}
+		}
 	}
 
 	return tx.Commit()
@@ -100,7 +133,15 @@ func (p *pullRequestRepository) GetByReviewerID(
 	ctx context.Context,
 	reviewerID domain.UserID,
 ) ([]domain.PullRequest, error) {
-	panic("implement me")
+	query := `SELECT * FROM pull_request_reviewers WHERE reviewer_id = $1`
+
+	var prs []domain.PullRequest
+	err := p.db.SelectContext(ctx, &prs, query, reviewerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return prs, nil
 }
 
 func (p *pullRequestRepository) Exists(ctx context.Context, prID domain.PRID) (bool, error) {

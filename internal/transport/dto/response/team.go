@@ -6,15 +6,17 @@ import (
 )
 
 type Team struct {
-	Name    string     `json:"name"`
-	Members []dto.User `json:"members"`
+	Team struct {
+		TeamName string     `json:"team_name"`
+		Members  []dto.User `json:"members"`
+	} `json:"team"`
 }
 
 func (t *Team) FromModel(model *domain.Team) *Team {
-	t.Name = model.Name
-	t.Members = make([]dto.User, len(model.Members))
+	t.Team.TeamName = model.Name
+	t.Team.Members = make([]dto.User, len(model.Members))
 	for i, user := range model.Members {
-		t.Members[i].FromModel(&user)
+		t.Team.Members[i].FromModel(&user)
 	}
 	return t
 }

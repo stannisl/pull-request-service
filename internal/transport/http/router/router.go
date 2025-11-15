@@ -23,6 +23,7 @@ func New(deps service.Dependencies) Router {
 	healthHandler := handlers.NewHealthHandler()
 	teamHandler := handlers.NewTeamHandler(deps.TeamService)
 	pullRequestHandler := handlers.NewPullRequestHandler(deps.PullRequestService)
+	userHandler := handlers.NewUserHandler(deps.UserService)
 
 	health := router.Group("/health")
 	{
@@ -38,8 +39,15 @@ func New(deps service.Dependencies) Router {
 	pullRequest := router.Group("/pullRequest")
 	{
 		pullRequest.POST("/create", pullRequestHandler.Create)
+		pullRequest.POST("/merge", pullRequestHandler.Merge)
+		pullRequest.POST("/reassign", pullRequestHandler.ReassignReviewers)
 	}
 
+	user := router.Group("/users")
+	{
+		user.POST("/setIsActive", userHandler.SetIsActive)
+		user.POST("/getReviews", userHandler.ListPRAsReviewer)
+	}
 	return &ginRouter{
 		router: router,
 	}

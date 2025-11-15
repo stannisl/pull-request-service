@@ -28,7 +28,6 @@ func (t *teamService) CreateTeam(ctx context.Context, team domain.Team) (*domain
 	}
 
 	for _, member := range team.Members {
-		log.Printf("Member: %v\n", member)
 		err = t.userRepository.CreateOrUpdateUser(ctx, &member)
 		if err != nil {
 			log.Printf("Error adding user to team: %v\n", err)
@@ -49,7 +48,7 @@ func (t *teamService) GetTeam(ctx context.Context, name domain.TeamName) (*domai
 	team, err := t.teamRepository.GetTeam(ctx, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, domain.ErrTeamNotFound
+			return nil, domain.ErrEntityNotFound
 		}
 		log.Printf("Error getting team: %v\n", err)
 		return nil, err

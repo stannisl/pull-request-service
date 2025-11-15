@@ -2,6 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stannisl/avito-test/internal/domain"
@@ -18,7 +21,7 @@ type UserRepository interface {
 	GetActiveUsersByTeamWithLimit(
 		ctx context.Context,
 		teamName domain.TeamName,
-		excludeUserID domain.UserID,
+		excludeUserID []domain.UserID,
 		limit int,
 	) ([]domain.User, error)
 
@@ -77,23 +80,31 @@ func (u *userRepository) GetUser(ctx context.Context, userID domain.UserID) (*do
 func (u *userRepository) GetActiveUsersByTeamWithLimit(
 	ctx context.Context,
 	teamName domain.TeamName,
-	excludeUserID domain.UserID,
+	excludeUserID []domain.UserID,
 	limit int,
 ) ([]domain.User, error) {
-	rawQuery := `SELECT * FROM users WHERE team_name = $1 AND is_active = true AND id <> $2 ORDER BY random()`
-
+	rawQuery := `SELECT * FROM users WHERE team_name = $1 AND is_active = true AND`
 	var (
 		query string
-		args  []any
+		args  = []any{teamName}
 	)
 
-	if limit >= 0 {
-		query = rawQuery + " LIMIT $3"
-		args = []any{teamName, excludeUserID, limit}
-	} else {
-		query = rawQuery
-		args = []any{teamName, excludeUserID}
+	usersVariables := make([]string, len(excludeUserID))
+	for i, userID := range excludeUserID {
+		usersVariables[i] = fmt.Sprintf("$%d", len(args)+1)
+		args = append(args, userID)
 	}
+
+	usersExcluding := fmt.Sprintf(" id NOT IN (%s) ORDER BY random()", strings.Join(usersVariables, ", "))
+
+	if limit >= 0 {
+		query = rawQuery + usersExcluding + " LIMIT $3"
+		args = append(args, limit)
+	} else {
+		query = rawQuery + usersExcluding
+	}
+
+	log.Println(query, args)
 
 	var users []domain.User
 

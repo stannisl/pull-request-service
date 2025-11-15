@@ -81,7 +81,7 @@ func (a *App) Setup(ctx context.Context) error {
 
 	services := service.Dependencies{
 		TeamService: service.NewTeamService(repositories.UserRepository, repositories.TeamRepository),
-		UserService: service.NewUserService(),
+		UserService: service.NewUserService(repositories.UserRepository, repositories.PullRequestRepository),
 		PullRequestService: service.NewPullRequestService(
 			repositories.PullRequestRepository,
 			repositories.UserRepository,
