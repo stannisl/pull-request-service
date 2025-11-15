@@ -13,21 +13,26 @@ type Router interface {
 }
 
 type ginRouter struct {
-	//healthHandler *handlers.HealthHandler
 	router *gin.Engine
 }
 
 func New(deps service.Dependencies) Router {
 	router := gin.New()
+	registerMiddlewares(router)
 
 	healthHandler := handlers.NewHealthHandler()
+	teamHandler := handlers.NewTeamHandler(deps.TeamService)
 
 	health := router.Group("/health")
 	{
 		health.GET("/", healthHandler.Check)
 	}
 
-	registerMiddlewares(router)
+	team := router.Group("/team")
+	{
+		team.GET("/get", teamHandler.GetTeam)
+		team.POST("/add", teamHandler.AddTeam)
+	}
 
 	return &ginRouter{
 		router: router,

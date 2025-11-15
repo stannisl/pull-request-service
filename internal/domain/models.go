@@ -9,14 +9,14 @@ type (
 )
 
 type User struct {
-	Id       UserID
-	Username string
-	TeamName TeamName
-	IsActive bool
+	Id       UserID   `db:"id"`
+	Username string   `db:"username"`
+	TeamName TeamName `db:"team_name"`
+	IsActive bool     `db:"is_active"`
 }
 
 type Team struct {
-	Name    string
+	Name    string `db:"name"`
 	Members []User
 }
 

@@ -1,17 +1,31 @@
 package domain
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // ErrorCode представляет код ошибки согласно OpenAPI спецификации
 type ErrorCode string
 
 const (
+	// Internal
+
 	ErrorCodeTeamExists  ErrorCode = "TEAM_EXISTS"
 	ErrorCodePRExists    ErrorCode = "PR_EXISTS"
 	ErrorCodePRMerged    ErrorCode = "PR_MERGED"
 	ErrorCodeNotAssigned ErrorCode = "NOT_ASSIGNED"
 	ErrorCodeNoCandidate ErrorCode = "NO_CANDIDATE"
 	ErrorCodeNotFound    ErrorCode = "NOT_FOUND"
+
+	// Common
+
+	ErrorCodeBadRequest ErrorCode = "BAD_REQUEST"
+	ErrorCodeInternal   ErrorCode = "INTERNAL_SERVER_ERROR"
+)
+
+var (
+	ErrTeamNotFound = errors.New("team not found")
 )
 
 type Error struct {
@@ -33,6 +47,14 @@ func NewError(code ErrorCode, message string) *Error {
 
 func ErrTeamExists(teamName TeamName) *Error {
 	return NewError(ErrorCodeTeamExists, fmt.Sprintf("team_name %s already exists", teamName))
+}
+
+func ErrBadRequest(param string) *Error {
+	return NewError(ErrorCodeBadRequest, param)
+}
+
+func ErrInternalServer(err error) *Error {
+	return NewError(ErrorCodeInternal, err.Error())
 }
 
 func ErrPRExists(prID PRID) *Error {

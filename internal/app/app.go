@@ -13,6 +13,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stannisl/avito-test/internal/config"
+	"github.com/stannisl/avito-test/internal/repository"
 	"github.com/stannisl/avito-test/internal/server"
 	"github.com/stannisl/avito-test/internal/service"
 	"github.com/stannisl/avito-test/internal/transport/http/router"
@@ -63,20 +64,24 @@ func (a *App) Setup(ctx context.Context) error {
 
 	migrator := db.NewMigrator(conn, releaseConn)
 	// Run migrations
+
+	// WARNING
+	migrator.Drop(ctx)
+	// WARNING
+
 	if err := migrator.Run(ctx); err != nil {
 		return fmt.Errorf("error running migrations: %s", err)
 	}
 	log.Println("Migrations applied")
 
-	// Initing components
-	//repositories := repository.Dependencies{
-	//	PullRequestRepository: nil,
-	//	TeamRepository:        nil,
-	//	UserRepository:        nil,
-	//}
+	repositories := repository.Dependencies{
+		PullRequestRepository: repository.NewPullRequestRepository(a.db),
+		TeamRepository:        repository.NewTeamRepository(a.db),
+		UserRepository:        repository.NewUserRepository(a.db),
+	}
 
 	services := service.Dependencies{
-		TeamService:        service.NewTeamService(),
+		TeamService:        service.NewTeamService(repositories.UserRepository, repositories.TeamRepository),
 		UserService:        service.NewUserService(),
 		PullRequestService: service.NewPullRequestService(),
 	}

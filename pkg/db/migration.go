@@ -31,6 +31,41 @@ func (m *Migrator) Close() {
 	m.conn = nil
 }
 
+func (m *Migrator) Drop(ctx context.Context) error {
+	if m.conn == nil {
+		return fmt.Errorf("conn is closed")
+	}
+
+	schemaSQL, err := dropSchemaFS.ReadFile("migrations/DROP_SCHEMA.sql")
+
+	if err != nil {
+		return fmt.Errorf("failed to read schema: %w", err)
+	}
+
+	queries := strings.Split(string(schemaSQL), ";")
+
+	for _, query := range queries {
+		tx, err := m.conn.BeginTx(ctx, nil)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+
+		_, err = tx.ExecContext(ctx, query)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to execute query: %w", err)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
+	}
+	return nil
+}
+
 // Run создает схему из migrations/SCHEMA.sql
 func (m *Migrator) Run(ctx context.Context) error {
 	if m.conn == nil {
