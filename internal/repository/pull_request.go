@@ -65,7 +65,11 @@ func (p *pullRequestRepository) Create(ctx context.Context, pr *domain.PullReque
 }
 
 func (p *pullRequestRepository) GetByID(ctx context.Context, prID domain.PRID) (*domain.PullRequest, error) {
-	query := `SELECT * FROM pull_requests WHERE id = $1`
+	query := `
+		SELECT (id, name, author_id, status, need_more_reviewers, created_at, merged_at) 
+		FROM pull_requests 
+		WHERE id = $1
+	`
 	var pr domain.PullRequest
 	err := p.db.GetContext(ctx, &pr, query, prID)
 	if err != nil {

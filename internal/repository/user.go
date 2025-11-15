@@ -66,7 +66,7 @@ func (u *userRepository) CreateOrUpdateUser(ctx context.Context, user *domain.Us
 }
 
 func (u *userRepository) GetUser(ctx context.Context, userID domain.UserID) (*domain.User, error) {
-	query := `SELECT * FROM users WHERE id = $1`
+	query := `SELECT (id, username, team_name, is_active) FROM users WHERE id = $1`
 
 	var user domain.User
 
@@ -83,7 +83,7 @@ func (u *userRepository) GetActiveUsersByTeamWithLimit(
 	excludeUserID []domain.UserID,
 	limit int,
 ) ([]domain.User, error) {
-	rawQuery := `SELECT * FROM users WHERE team_name = $1 AND is_active = true AND`
+	rawQuery := `SELECT (id, username, team_name, is_active) FROM users WHERE team_name = $1 AND is_active = true AND`
 	var (
 		query string
 		args  = []any{teamName}
@@ -136,7 +136,7 @@ func (u *userRepository) SetIsActive(ctx context.Context, userID domain.UserID, 
 }
 
 func (u *userRepository) GetUsersByTeam(ctx context.Context, teamName domain.TeamName) ([]domain.User, error) {
-	query := `SELECT * FROM users WHERE team_name = $1`
+	query := `SELECT (id, username, team_name, is_active) FROM users WHERE team_name = $1`
 	var users []domain.User
 
 	err := u.conn.SelectContext(ctx, &users, query, teamName)
