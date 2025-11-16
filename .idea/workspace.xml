@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ad1c0053-4736-491f-b8bb-359173c01948" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/app/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/config/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/config/test_config.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/repository/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/server/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/service/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/transport/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/db/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/e2e/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/e2e/e2e_suite_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/e2e/pull_request_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/e2e/reassign_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/e2e/teams_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/load_tests/load_test.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TODO.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/app/app.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/app.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/repository/base.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/repository/base.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/db/transaction.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/db/transaction.go" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+        <option value="Dockerfile" />
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="GOROOT" url="file:///usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLinterSelectedExecutable" path="$USER_HOME$/go/bin/golangci-lint" />
+  <component name="HttpClientOnboardingState">{
+  &quot;isOnboardingCommentShown&quot;: true
+}</component>
+  <component name="KubernetesApiPersistence"><![CDATA[{}]]></component>
+  <component name="KubernetesApiProvider"><![CDATA[{
+  "isMigrated": true
+}]]></component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="35PywVk9llQSx2vxLvV0Yr9pWxr" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultGoTemplateProperty": "Go File",
+    "Go Build.go build github.com/stannisl/avito-test/cmd/service.executor": "Run",
+    "Go Test.TestRunMigrations in github.com/stannisl/avito-test/pkg/db (1).executor": "Run",
+    "Go Test.TestRunMigrations in github.com/stannisl/avito-test/pkg/db.executor": "Run",
+    "Go Test.go test github.com/stannisl/avito-test/pkg/db.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.GoLinterPluginOnboarding": "true",
+    "RunOnceActivity.GoLinterPluginStorageMigration": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "feat/rewrite-to-gin",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/home/mostanin/repos/avito-test",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/internal" />
+      <recent name="$PROJECT_DIR$/pkg" />
+      <recent name="$PROJECT_DIR$/tests/load_tests" />
+      <recent name="$PROJECT_DIR$/tests" />
+      <recent name="$PROJECT_DIR$/pkg/db" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Go Build.go build github.com/stannisl/avito-test/cmd/service">
+    <configuration name="go build github.com/stannisl/avito-test/cmd/service" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="avito-test" />
+      <working_directory value="$PROJECT_DIR$" />
+      <parameters value="-v" />
+      <kind value="PACKAGE" />
+      <package value="github.com/stannisl/pull-request-service/cmd/service" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/cmd/service/main.go" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestRunMigrations in github.com/stannisl/avito-test/pkg/db (1)" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="avito-test" />
+      <working_directory value="$PROJECT_DIR$/pkg/db" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/stannisl/avito-test/pkg/db" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestRunMigrations\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestRunMigrations in github.com/stannisl/avito-test/pkg/db" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="avito-test" />
+      <working_directory value="$PROJECT_DIR$/pkg/db" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/stannisl/avito-test/pkg/db" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gobench" />
+      <pattern value="^\QTestRunMigrations\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/stannisl/avito-test/pkg/db" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="avito-test" />
+      <working_directory value="$PROJECT_DIR$/pkg/db" />
+      <go_parameters value="-test.v" />
+      <parameters value="-test.v" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/stannisl/avito-test/pkg/db" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gobench" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Go Build.go build github.com/stannisl/avito-test/cmd/service" />
+      <item itemvalue="Go Test.TestRunMigrations in github.com/stannisl/avito-test/pkg/db (1)" />
+      <item itemvalue="Go Test.TestRunMigrations in github.com/stannisl/avito-test/pkg/db" />
+      <item itemvalue="Go Test.go test github.com/stannisl/avito-test/pkg/db" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go Build.go build github.com/stannisl/avito-test/cmd/service" />
+        <item itemvalue="Go Test.TestRunMigrations in github.com/stannisl/avito-test/pkg/db (1)" />
+        <item itemvalue="Go Test.TestRunMigrations in github.com/stannisl/avito-test/pkg/db" />
+        <item itemvalue="Go Test.go test github.com/stannisl/avito-test/pkg/db" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-gosdk-f466f9b0953e-146d08934cbf-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-252.27397.100" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-GO-252.27397.100" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ad1c0053-4736-491f-b8bb-359173c01948" name="Changes" comment="" />
+      <created>1763026239985</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1763026239985</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VgoProject">
+    <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/service/pull_request.go</url>
+          <line>135</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/transport/http/handlers/user.go</url>
+          <line>25</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/service/pull_request.go</url>
+          <line>38</line>
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/transport/http/handlers/pull_request.go</url>
+          <line>62</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/service/pull_request.go</url>
+          <line>112</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
