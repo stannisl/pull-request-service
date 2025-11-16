@@ -62,11 +62,6 @@ func (a *App) Setup(ctx context.Context) error {
 	}()
 
 	migrator := db.NewMigrator(conn, releaseConn)
-	// Run migrations
-
-	// WARNING REMOVE ON PROD
-	//migrator.Drop(ctx)
-	// WARNING
 
 	if err := migrator.Run(ctx); err != nil {
 		return fmt.Errorf("error running migrations: %s", err)
@@ -118,16 +113,17 @@ func (a *App) StartAndServeHTTP(ctx context.Context) error {
 	a.server = serv
 	log.Println("Server build successful")
 
-	// TODO добавить закрытие сервера при ошибке от ListenAndServe
+	errCh := make(chan error, 1)
 
 	go func() {
 		log.Printf("HTTP server listening on %s", a.server.Addr)
 		if err := a.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("http server failed: %v", err)
+			errCh <- err
+			log.Printf("http server failed: %v\n", err)
 		}
 	}()
 
-	waitForShutdown() // block main goroutine
+	waitForShutdown(errCh) // block main goroutine
 
 	log.Println("Gracefully shutting down...")
 
@@ -136,9 +132,14 @@ func (a *App) StartAndServeHTTP(ctx context.Context) error {
 
 	return a.server.Shutdown(ctx)
 }
-
-func waitForShutdown() {
+func waitForShutdown(errCh <-chan error) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
-	<-signals
+
+	select {
+	case sig := <-signals:
+		fmt.Printf("shutdown signal: %s\n", sig)
+	case err := <-errCh:
+		fmt.Printf("service error: %v\n", err)
+	}
 }
