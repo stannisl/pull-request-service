@@ -9,18 +9,18 @@ type (
 )
 
 type User struct {
-	ID       UserID
-	Username string
-	Team     TeamName
-	IsActive bool
+	Id       UserID   `db:"id"`
+	Username string   `db:"username"`
+	TeamName TeamName `db:"team_name"`
+	IsActive bool     `db:"is_active"`
 }
 
 type Team struct {
-	Name    TeamName
+	Name    string `db:"name"`
 	Members []User
 }
 
-type PullRequestStatus string
+type PullRequestStatus = string
 
 const (
 	PullRequestStatusOpen   PullRequestStatus = "OPEN"
@@ -28,11 +28,17 @@ const (
 )
 
 type PullRequest struct {
-	ID                PRID
-	Name              string
-	AuthorID          UserID
-	Status            PullRequestStatus
-	AssignedReviewers []UserID
-	CreatedAt         time.Time
-	MergedAt          *time.Time
+	ID                PRID              `db:"id"`
+	Name              string            `db:"name"`
+	AuthorID          UserID            `db:"author_id"`
+	Status            PullRequestStatus `db:"status"`
+	AssignedReviewers []UserID          `db:"assigned_reviewers"`
+	NeedMoreReviewers bool              `db:"need_more_reviewers"`
+	CreatedAt         time.Time         `db:"created_at"`
+	MergedAt          *time.Time        `db:"merged_at"`
+}
+
+type UserAssignments struct {
+	ReviewerID UserID `db:"reviewer_id"`
+	Count      int    `db:"assigned_count"`
 }

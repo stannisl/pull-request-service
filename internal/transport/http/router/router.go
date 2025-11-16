@@ -3,42 +3,68 @@ package router
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-
-	"github.com/mostanin/avito-test/internal/config"
-	"github.com/mostanin/avito-test/internal/service"
-	handlerspkg "github.com/mostanin/avito-test/internal/transport/http/handlers"
+	"github.com/gin-gonic/gin"
+	"github.com/stannisl/pull-request-service/internal/service"
+	"github.com/stannisl/pull-request-service/internal/transport/http/handlers"
 )
 
 type Router interface {
 	http.Handler
 }
 
-type chiRouter struct {
-	mux *chi.Mux
+type ginRouter struct {
+	router *gin.Engine
 }
 
-func New(cfg config.Config, deps service.Dependencies) Router {
-	mux := chi.NewRouter()
-	registerMiddlewares(mux)
+func New(deps service.Dependencies) Router {
+	router := gin.New()
+	registerMiddlewares(router)
 
-	handlers := handlerspkg.New(deps)
-	handlers.Mount(mux)
+	healthHandler := handlers.NewHealthHandler()
+	teamHandler := handlers.NewTeamHandler(deps.TeamService)
+	pullRequestHandler := handlers.NewPullRequestHandler(deps.PullRequestService)
+	userHandler := handlers.NewUserHandler(deps.UserService)
+	statsHandler := handlers.NewStatsHandler(deps.StatsService)
 
-	return &chiRouter{
-		mux: mux,
+	health := router.Group("/health")
+	{
+		health.GET("", healthHandler.Check)
+	}
+
+	team := router.Group("/team")
+	{
+		team.GET("/get", teamHandler.GetTeam)
+		team.POST("/add", teamHandler.AddTeam)
+	}
+
+	pullRequest := router.Group("/pullRequest")
+	{
+		pullRequest.POST("/create", pullRequestHandler.Create)
+		pullRequest.POST("/merge", pullRequestHandler.Merge)
+		pullRequest.POST("/reassign", pullRequestHandler.ReassignReviewers)
+	}
+
+	user := router.Group("/users")
+	{
+		user.POST("/setIsActive", userHandler.SetIsActive)
+		user.GET("/getReview", userHandler.ListPRAsReviewer)
+	}
+
+	stats := router.Group("/stats")
+	{
+		stats.GET("", statsHandler.GetStats)
+	}
+
+	return &ginRouter{
+		router: router,
 	}
 }
 
-func registerMiddlewares(mux *chi.Mux) {
-	mux.Use(middleware.RequestID)
-	mux.Use(middleware.RealIP)
-	mux.Use(middleware.Logger)
-	mux.Use(middleware.Recoverer)
-	mux.Use(middleware.AllowContentType("application/json"))
+func registerMiddlewares(engine *gin.Engine) {
+	engine.Use(gin.Logger())
+	engine.Use(gin.Recovery())
 }
 
-func (r *chiRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.mux.ServeHTTP(w, req)
+func (r *ginRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	r.router.ServeHTTP(w, req)
 }

@@ -2,23 +2,58 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
-	"github.com/mostanin/avito-test/internal/domain"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/internal/repository"
 )
 
 type UserService interface {
-	SetActiveFlag(ctx context.Context, userID domain.UserID, isActive bool) (domain.User, error)
+	SetIsActive(ctx context.Context, userID domain.UserID, isActive bool) (*domain.User, error)
+	GetReview(ctx context.Context, userID domain.UserID) ([]domain.PullRequest, error)
 }
 
-func NewUserServiceStub() UserService {
-	return &userServiceStub{}
+type userService struct {
+	userRepo repository.UserRepository
+	prRepo   repository.PullRequestRepository
 }
 
-type userServiceStub struct{}
+func (u *userService) SetIsActive(ctx context.Context, userID domain.UserID, isActive bool) (*domain.User, error) {
+	err := u.userRepo.SetIsActive(ctx, userID, isActive)
 
-func (s *userServiceStub) SetActiveFlag(ctx context.Context, userID domain.UserID, isActive bool) (domain.User, error) {
-	return domain.User{
-		ID:       userID,
-		IsActive: isActive,
-	}, nil
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := u.userRepo.GetUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (u *userService) GetReview(ctx context.Context, userID domain.UserID) ([]domain.PullRequest, error) {
+	_, err := u.userRepo.GetUser(ctx, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domain.ErrEntityNotFound
+		}
+		return nil, err
+	}
+
+	prs, err := u.prRepo.GetByReviewerID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return prs, nil
+}
+
+func NewUserService(userRepo repository.UserRepository, prRepo repository.PullRequestRepository) UserService {
+	return &userService{
+		userRepo: userRepo,
+		prRepo:   prRepo,
+	}
 }

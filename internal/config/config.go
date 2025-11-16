@@ -1,54 +1,60 @@
 package config
 
 import (
-	"fmt"
-	"os"
+	"log"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 const (
-	DefaultHTTPHost = "0.0.0.0"
-	DefaultHTTPPort = "8080"
+	MaxAssignedPerReview = 2
+
+	// Default Server Fields
+
+	DefaultReadTimeout     = 5 * time.Second
+	DefaultWriteTimeout    = 10 * time.Second
+	DefaultShutdownTimeout = 15 * time.Second
+	DefaultHTTPHost        = "0.0.0.0"
+	DefaultHTTPPort        = "8080"
 )
 
 type Config struct {
 	HTTPServer HTTPServerConfig
+	Database   DatabaseConfig
+}
+
+type DatabaseConfig struct {
+	ConnStr           string
+	Retries           int
+	RetrySecondsDelay int
+	DriverName        string
 }
 
 type HTTPServerConfig struct {
-	Host         string
-	Port         string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	IdleTimeout  time.Duration
+	Host string
+	Port string
 }
 
-func MustLoad() Config {
-	cfg, err := Load()
-	if err != nil {
-		panic(err)
+func LoadConfig() (*Config, error) {
+	viper.SetConfigFile(".env")
+	if err := viper.ReadInConfig(); err != nil {
+		log.Println("No .env file found, fallback to system env")
 	}
+	viper.AutomaticEnv()
 
-	return cfg
-}
-
-func Load() (Config, error) {
-	host := valueOrDefault(os.Getenv("HTTP_HOST"), DefaultHTTPHost)
-	port := valueOrDefault(os.Getenv("HTTP_PORT"), DefaultHTTPPort)
-
-	return Config{
+	return &Config{
 		HTTPServer: HTTPServerConfig{
-			Host:         host,
-			Port:         port,
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 5 * time.Second,
-			IdleTimeout:  60 * time.Second,
+			Host: valueOrDefault(viper.GetString("APP_HTTP_HOST"), DefaultHTTPHost),
+			Port: valueOrDefault(viper.GetString("APP_HTTP_PORT"), DefaultHTTPPort),
+		},
+		Database: DatabaseConfig{
+			ConnStr:           viper.GetString("APP_DATABASE_CONN_URL"),
+			Retries:           viper.GetInt("APP_DATABASE_RETRIES"),
+			RetrySecondsDelay: viper.GetInt("APP_DATABASE_RETRIES_SECONDS_DELAY"),
+			DriverName:        viper.GetString("APP_DATABASE_DRIVER_NAME"),
 		},
 	}, nil
-}
-
-func (c HTTPServerConfig) Address() string {
-	return fmt.Sprintf("%s:%s", c.Host, c.Port)
 }
 
 func valueOrDefault(value, fallback string) string {
