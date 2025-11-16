@@ -3,7 +3,7 @@ package dto
 import (
 	"fmt"
 
-	"github.com/stannisl/avito-test/internal/domain"
+	"github.com/stannisl/pull-request-service/internal/domain"
 )
 
 const (
@@ -56,6 +56,6 @@ func ErrNoCandidate() *Error {
 	return NewError(domain.ErrorCodeNoCandidate, "no active replacement candidate in team")
 }
 
-func ErrNotFound(resource string) *Error {
-	return NewError(domain.ErrorCodeNotFound, fmt.Sprintf("%s not found", resource))
+func ErrNotFound() *Error {
+	return NewError(domain.ErrorCodeNotFound, "resource not found")
 }

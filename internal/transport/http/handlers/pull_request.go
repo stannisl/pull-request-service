@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stannisl/avito-test/internal/domain"
-	"github.com/stannisl/avito-test/internal/service"
-	"github.com/stannisl/avito-test/internal/transport/dto"
-	"github.com/stannisl/avito-test/internal/transport/dto/request"
-	"github.com/stannisl/avito-test/internal/transport/dto/response"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/internal/service"
+	"github.com/stannisl/pull-request-service/internal/transport/dto"
+	"github.com/stannisl/pull-request-service/internal/transport/dto/request"
+	"github.com/stannisl/pull-request-service/internal/transport/dto/response"
 )
 
 type PullRequestHandler struct {
@@ -33,7 +33,7 @@ func (prh *PullRequestHandler) Merge(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, domain.ErrEntityNotFound) {
-			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound(pullRequestMerge.PullRequestId)})
+			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound()})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, response.Error{Error: dto.ErrInternalServer(err)})
@@ -48,7 +48,7 @@ func (prh *PullRequestHandler) Create(c *gin.Context) {
 	ctx := c.Request.Context()
 	var createPullRequest request.CreatePullRequest
 
-	if err := c.ShouldBind(&createPullRequest); err != nil {
+	if err := c.ShouldBindJSON(&createPullRequest); err != nil {
 		c.JSON(http.StatusBadRequest, response.Error{Error: dto.ErrBadRequest("Invalid request")})
 		return
 	}
@@ -61,8 +61,13 @@ func (prh *PullRequestHandler) Create(c *gin.Context) {
 	)
 
 	if err != nil {
+		if errors.Is(err, domain.ErrPRExists) {
+			c.JSON(http.StatusConflict, response.Error{Error: dto.ErrPRExists()})
+			return
+		}
+
 		if errors.Is(err, domain.ErrEntityNotFound) {
-			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound(createPullRequest.AuthorId)})
+			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound()})
 			return
 		}
 
@@ -78,7 +83,7 @@ func (prh *PullRequestHandler) ReassignReviewers(c *gin.Context) {
 	ctx := c.Request.Context()
 	var reassignReviewers request.ReassignReviewers
 
-	if err := c.ShouldBind(&reassignReviewers); err != nil {
+	if err := c.ShouldBindJSON(&reassignReviewers); err != nil {
 		c.JSON(http.StatusBadRequest, response.Error{Error: dto.ErrBadRequest("Invalid request")})
 		return
 	}
@@ -106,7 +111,7 @@ func (prh *PullRequestHandler) ReassignReviewers(c *gin.Context) {
 		}
 
 		if errors.Is(err, domain.ErrEntityNotFound) {
-			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound(pullRequest.AuthorID)})
+			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound()})
 			return
 		}
 

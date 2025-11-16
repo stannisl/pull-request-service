@@ -8,8 +8,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/stannisl/avito-test/internal/domain"
-	"github.com/stannisl/avito-test/internal/repository"
+	"github.com/stannisl/pull-request-service/internal/config"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/internal/repository"
 )
 
 type PullRequestService interface {
@@ -41,7 +42,12 @@ func (p *pullRequestService) Create(
 		return nil, err
 	}
 
-	availableActiveUsers, err := p.userRepo.GetActiveUsersByTeamWithLimit(ctx, user.TeamName, []domain.UserID{user.Id}, 2)
+	availableActiveUsers, err := p.userRepo.GetActiveUsersByTeamWithLimit(
+		ctx,
+		user.TeamName,
+		[]domain.UserID{user.Id},
+		config.MaxAssignedPerReview,
+	)
 	if err != nil {
 		log.Printf("error getting active users: %v", err)
 	}
@@ -50,7 +56,7 @@ func (p *pullRequestService) Create(
 
 	availableActiveUsersIds := make([]domain.UserID, len(availableActiveUsers))
 	for i, user := range availableActiveUsers {
-		if i > 2 { // Мы имеем <= 2 всегда в этом списке
+		if i > config.MaxAssignedPerReview { // мы имеем <= 2 всегда в этом списке
 			break
 		}
 		availableActiveUsersIds[i] = user.Id
@@ -66,6 +72,9 @@ func (p *pullRequestService) Create(
 	}
 
 	if err := p.prRepo.Create(ctx, pr); err != nil {
+		if errors.Is(err, domain.ErrPRExists) {
+			return nil, err
+		}
 		log.Printf("error creating pull request: %v", err)
 		return nil, err
 	}

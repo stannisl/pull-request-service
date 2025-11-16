@@ -1,8 +1,6 @@
 package request
 
-import (
-	"github.com/stannisl/avito-test/internal/domain"
-)
+import "github.com/stannisl/pull-request-service/internal/domain"
 
 type CreatePullRequest struct {
 	PullRequestId   domain.PRID   `json:"pull_request_id" binding:"required"`
@@ -24,5 +22,5 @@ type PullRequestMerge struct {
 
 type ReassignReviewers struct {
 	PullRequestId domain.PRID   `json:"pull_request_id"`
-	OldReviewerId domain.UserID `json:"old_reviewer_id"`
+	OldReviewerId domain.UserID `json:"old_user_id"`
 }

@@ -6,8 +6,8 @@ import (
 	"errors"
 	"log"
 
-	"github.com/stannisl/avito-test/internal/domain"
-	"github.com/stannisl/avito-test/internal/repository"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/internal/repository"
 )
 
 type TeamService interface {
@@ -23,6 +23,10 @@ type teamService struct {
 func (t *teamService) CreateTeam(ctx context.Context, team domain.Team) (*domain.Team, error) {
 	err := t.teamRepository.CreateTeam(ctx, team)
 	if err != nil {
+		if errors.Is(err, domain.ErrTeamExists) {
+			return nil, err
+		}
+
 		log.Printf("Error creating team: %v\n", err)
 		return nil, err
 	}

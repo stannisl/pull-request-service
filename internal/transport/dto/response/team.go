@@ -1,8 +1,8 @@
 package response
 
 import (
-	"github.com/stannisl/avito-test/internal/domain"
-	"github.com/stannisl/avito-test/internal/transport/dto"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/internal/transport/dto"
 )
 
 type Team struct {

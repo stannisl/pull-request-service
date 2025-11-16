@@ -8,6 +8,8 @@ import (
 )
 
 const (
+	MaxAssignedPerReview = 2
+
 	// Default Server Fields
 
 	DefaultReadTimeout     = 5 * time.Second

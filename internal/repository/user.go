@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/stannisl/avito-test/internal/domain"
-	"github.com/stannisl/avito-test/pkg/db"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/pkg/db"
 )
 
 type UserRepository interface {

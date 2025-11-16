@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/stannisl/avito-test/internal/config"
+	"github.com/stannisl/pull-request-service/internal/config"
 )
 
 type Builder struct {

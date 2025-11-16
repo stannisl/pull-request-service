@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stannisl/avito-test/internal/domain"
-	"github.com/stannisl/avito-test/internal/service"
-	"github.com/stannisl/avito-test/internal/transport/dto"
-	"github.com/stannisl/avito-test/internal/transport/dto/request"
-	"github.com/stannisl/avito-test/internal/transport/dto/response"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/internal/service"
+	"github.com/stannisl/pull-request-service/internal/transport/dto"
+	"github.com/stannisl/pull-request-service/internal/transport/dto/request"
+	"github.com/stannisl/pull-request-service/internal/transport/dto/response"
 )
 
 type TeamHandler struct {
@@ -24,7 +24,7 @@ func (t *TeamHandler) AddTeam(c *gin.Context) {
 	ctx := c.Request.Context()
 	var addTeamRequest request.AddTeamRequest
 
-	if err := c.BindJSON(&addTeamRequest); err != nil {
+	if err := c.ShouldBindJSON(&addTeamRequest); err != nil {
 		c.JSON(http.StatusBadRequest, response.Error{Error: dto.ErrBadRequest("Invalid request")})
 		return
 	}
@@ -32,6 +32,10 @@ func (t *TeamHandler) AddTeam(c *gin.Context) {
 	team, err := t.teamService.CreateTeam(ctx, addTeamRequest.ToModel())
 
 	if err != nil {
+		if errors.Is(err, domain.ErrTeamExists) {
+			c.JSON(http.StatusBadRequest, response.Error{Error: dto.ErrTeamExists()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, response.Error{Error: dto.ErrInternalServer(err)})
 		return
 	}
@@ -54,7 +58,7 @@ func (t *TeamHandler) GetTeam(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, domain.ErrEntityNotFound) {
-			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound(teamName)})
+			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound()})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, response.Error{Error: dto.ErrInternalServer(err)})

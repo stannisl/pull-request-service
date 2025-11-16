@@ -4,10 +4,12 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/stannisl/avito-test/internal/domain"
-	"github.com/stannisl/avito-test/pkg/db"
+	"github.com/lib/pq"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/pkg/db"
 )
 
 type TeamRepository interface {
@@ -32,6 +34,14 @@ func (t *teamRepository) CreateTeam(ctx context.Context, team domain.Team) error
 		executor := t.GetExecutor(ctx)
 
 		_, err := executor.ExecContext(ctx, query, team.Name)
+
+		var pgErr *pq.Error
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return domain.ErrTeamExists
+			}
+		}
+
 		return err
 	})
 }

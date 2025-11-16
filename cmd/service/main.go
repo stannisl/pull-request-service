@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/stannisl/avito-test/internal/app"
+	"github.com/stannisl/pull-request-service/internal/app"
 )
 
 func main() {

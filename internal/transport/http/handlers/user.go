@@ -1,13 +1,15 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stannisl/avito-test/internal/service"
-	"github.com/stannisl/avito-test/internal/transport/dto"
-	"github.com/stannisl/avito-test/internal/transport/dto/request"
-	"github.com/stannisl/avito-test/internal/transport/dto/response"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/internal/service"
+	"github.com/stannisl/pull-request-service/internal/transport/dto"
+	"github.com/stannisl/pull-request-service/internal/transport/dto/request"
+	"github.com/stannisl/pull-request-service/internal/transport/dto/response"
 )
 
 type UserHandler struct {
@@ -22,7 +24,7 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 
 func (uh *UserHandler) ListPRAsReviewer(c *gin.Context) {
 	ctx := c.Request.Context()
-	userId := c.Param("user_id")
+	userId := c.Query("user_id")
 
 	if userId == "" {
 		c.JSON(http.StatusBadRequest, response.Error{Error: dto.ErrBadRequest("Invalid user_id")})
@@ -32,6 +34,11 @@ func (uh *UserHandler) ListPRAsReviewer(c *gin.Context) {
 	prs, err := uh.userService.GetReview(ctx, userId)
 
 	if err != nil {
+		if errors.Is(err, domain.ErrEntityNotFound) {
+			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound()})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, response.Error{Error: dto.ErrInternalServer(err)})
 		return
 	}
@@ -44,7 +51,7 @@ func (uh *UserHandler) SetIsActive(c *gin.Context) {
 	ctx := c.Request.Context()
 	var user request.UserIsActive
 
-	if err := c.ShouldBind(&user); err != nil {
+	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, response.Error{Error: dto.ErrBadRequest("Invalid request")})
 		return
 	}
@@ -52,6 +59,11 @@ func (uh *UserHandler) SetIsActive(c *gin.Context) {
 	updatedUser, err := uh.userService.SetIsActive(ctx, user.UserId, user.IsActive)
 
 	if err != nil {
+		if errors.Is(err, domain.ErrEntityNotFound) {
+			c.JSON(http.StatusNotFound, response.Error{Error: dto.ErrNotFound()})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, response.Error{Error: dto.ErrInternalServer(err)})
 		return
 	}

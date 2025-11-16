@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stannisl/avito-test/internal/service"
-	"github.com/stannisl/avito-test/internal/transport/http/handlers"
+	"github.com/stannisl/pull-request-service/internal/service"
+	"github.com/stannisl/pull-request-service/internal/transport/http/handlers"
 )
 
 type Router interface {
@@ -24,6 +24,7 @@ func New(deps service.Dependencies) Router {
 	teamHandler := handlers.NewTeamHandler(deps.TeamService)
 	pullRequestHandler := handlers.NewPullRequestHandler(deps.PullRequestService)
 	userHandler := handlers.NewUserHandler(deps.UserService)
+	statsHandler := handlers.NewStatsHandler(deps.StatsService)
 
 	health := router.Group("/health")
 	{
@@ -46,8 +47,14 @@ func New(deps service.Dependencies) Router {
 	user := router.Group("/users")
 	{
 		user.POST("/setIsActive", userHandler.SetIsActive)
-		user.POST("/getReviews", userHandler.ListPRAsReviewer)
+		user.GET("/getReview", userHandler.ListPRAsReviewer)
 	}
+
+	stats := router.Group("/stats")
+	{
+		stats.GET("", statsHandler.GetStats)
+	}
+
 	return &ginRouter{
 		router: router,
 	}

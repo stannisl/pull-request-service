@@ -1,4 +1,3 @@
-// pkg/db/transaction.go
 package db
 
 import (

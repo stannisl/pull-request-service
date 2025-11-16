@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/stannisl/avito-test/internal/domain"
+import "github.com/stannisl/pull-request-service/internal/domain"
 
 type User struct {
 	Id       domain.UserID `json:"user_id" binding:"required"`

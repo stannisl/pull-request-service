@@ -4,10 +4,12 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/stannisl/avito-test/internal/domain"
-	"github.com/stannisl/avito-test/pkg/db"
+	"github.com/lib/pq"
+	"github.com/stannisl/pull-request-service/internal/domain"
+	"github.com/stannisl/pull-request-service/pkg/db"
 )
 
 type PullRequestRepository interface {
@@ -38,6 +40,13 @@ func (p *pullRequestRepository) Create(ctx context.Context, pr *domain.PullReque
 		_, err := executor.ExecContext(ctx, query,
 			pr.ID, pr.Name, pr.AuthorID, pr.Status, pr.NeedMoreReviewers, pr.CreatedAt, pr.MergedAt)
 		if err != nil {
+			var pgErr *pq.Error
+			if errors.As(err, &pgErr) {
+				if pgErr.Code == "23505" {
+					return domain.ErrPRExists
+				}
+			}
+
 			return err
 		}
 

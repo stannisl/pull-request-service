@@ -1,6 +1,6 @@
 package response
 
-import "github.com/stannisl/avito-test/internal/domain"
+import "github.com/stannisl/pull-request-service/internal/domain"
 
 type UserInfo struct {
 	User struct {

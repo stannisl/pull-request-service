@@ -37,3 +37,8 @@ type PullRequest struct {
 	CreatedAt         time.Time         `db:"created_at"`
 	MergedAt          *time.Time        `db:"merged_at"`
 }
+
+type UserAssignments struct {
+	ReviewerID UserID `db:"reviewer_id"`
+	Count      int    `db:"assigned_count"`
+}

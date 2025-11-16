@@ -12,12 +12,12 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/stannisl/avito-test/internal/config"
-	"github.com/stannisl/avito-test/internal/repository"
-	"github.com/stannisl/avito-test/internal/server"
-	"github.com/stannisl/avito-test/internal/service"
-	"github.com/stannisl/avito-test/internal/transport/http/router"
-	"github.com/stannisl/avito-test/pkg/db"
+	"github.com/stannisl/pull-request-service/internal/config"
+	"github.com/stannisl/pull-request-service/internal/repository"
+	"github.com/stannisl/pull-request-service/internal/server"
+	"github.com/stannisl/pull-request-service/internal/service"
+	"github.com/stannisl/pull-request-service/internal/transport/http/router"
+	"github.com/stannisl/pull-request-service/pkg/db"
 )
 
 type App struct {
@@ -65,7 +65,7 @@ func (a *App) Setup(ctx context.Context) error {
 	// Run migrations
 
 	// WARNING REMOVE ON PROD
-	migrator.Drop(ctx)
+	//migrator.Drop(ctx)
 	// WARNING
 
 	if err := migrator.Run(ctx); err != nil {
@@ -79,6 +79,7 @@ func (a *App) Setup(ctx context.Context) error {
 		PullRequestRepository: repository.NewPullRequestRepository(a.db, txManager),
 		TeamRepository:        repository.NewTeamRepository(a.db, txManager),
 		UserRepository:        repository.NewUserRepository(a.db, txManager),
+		StatsRepository:       repository.NewStatsRepository(a.db, txManager),
 	}
 	services := service.Dependencies{
 		TeamService: service.NewTeamService(repositories.UserRepository, repositories.TeamRepository),
@@ -88,6 +89,7 @@ func (a *App) Setup(ctx context.Context) error {
 			repositories.UserRepository,
 			repositories.TeamRepository,
 		),
+		StatsService: service.NewStatsService(repositories.StatsRepository),
 	}
 
 	a.router = router.New(services)
