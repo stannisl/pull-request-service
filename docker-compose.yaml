@@ -16,5 +16,29 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pull-request-app
+    restart: unless-stopped
+    environment:
+      APP_HTTP_HOST: "0.0.0.0"
+      APP_HTTP_PORT: "8080"
+      APP_DATABASE_CONN_URL: "postgres://pr-user:pr-pass@postgres:5432/pull-request-service?sslmode=disable"
+      APP_DATABASE_RETRIES: "5"
+      APP_DATABASE_RETRIES_SECONDS_DELAY: "2"
+      APP_DATABASE_DRIVER_NAME: "postgres"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
 volumes:
   postgres_data:

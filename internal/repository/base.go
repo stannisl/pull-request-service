@@ -1,4 +1,3 @@
-// internal/repository/base.go
 package repository
 
 import (
