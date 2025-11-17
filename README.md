@@ -1,9 +1,8 @@
 # Pull request service
 
-## кратко про проект
+## Кратко про проект
 
-
-### стек проекта
+### Стек проекта
 
 - **Язык**: Go 1.24
 - **Фреймворк**: Gin (HTTP)
@@ -11,7 +10,7 @@
 - **Миграции**: Встроенные через embed
 - **Тестирование**: testify + testcontainers
 
-### структура
+### Структура
 
 ```
 ./
@@ -29,23 +28,80 @@
 docker compose up
 ```
 
+
 ## Вопросы и решения
 
 1. Авторизация пользователей и 401 ответы. У нас в изначальном апи нет никакой авторизации и подтвеждения что действия
 идут от автора, поэтому опущено
 2. Обновление команды было опущено, потому что в openapi.yaml есть только создание, а при создании с таким же названием
 мы имеем ошибку TEAM_EXISTS
-3. 
+3. Добавлена ручка GET /stats для взятия статистики по пользователям назначенными ревьюверами на OPEN PullRequest
 
 ## Допольнительные задачи 
 
 ### E2E тестирование
 
+Запуск end-to-end тестов:
 ```bash
 make test-e2e
 ```
 
+#### Что проверяют E2E тесты
+
+Создание команды (POST /team/add) и её получение (GET /team/get) \
+Создание Pull Request (POST /pullRequest/create) \
+Слияние Pull Request (POST /pullRequest/merge) \
+Переназначение ревьювера (POST /pullRequest/reassign) \
+Проверка ошибок: NotFound (404) и InvalidRequest (400) \
+Проверка базовых метрик успешности и статусов HTTP
+
+#### Пример успешного запуска
+
+```bash
+[GIN] 2025/11/17 - 04:33:16 | 200 |      89.155µs |       127.0.0.1 | GET      "/health"
+2025/11/17 04:33:16 Application is ready!
+=== RUN   TestE2ETestSuite/TestPullRequest_CreateMergeAndReassign
+[GIN] 2025/11/17 - 04:33:16 | 201 |    6.161514ms |             ::1 | POST     "/team/add"
+[GIN] 2025/11/17 - 04:33:16 | 201 |     4.67464ms |             ::1 | POST     "/pullRequest/create"
+[GIN] 2025/11/17 - 04:33:16 | 200 |    2.584251ms |             ::1 | POST     "/pullRequest/merge"
+=== RUN   TestE2ETestSuite/TestPullRequest_NotFound
+2025/11/17 04:33:16 error getting pull request: entity not found in db
+[GIN] 2025/11/17 - 04:33:16 | 404 |     524.929µs |             ::1 | POST     "/pullRequest/merge"
+=== RUN   TestE2ETestSuite/TestPullRequest_ReassignReviewer
+[GIN] 2025/11/17 - 04:33:16 | 201 |    3.761544ms |             ::1 | POST     "/team/add"
+[GIN] 2025/11/17 - 04:33:16 | 201 |    2.224457ms |             ::1 | POST     "/pullRequest/create"
+[GIN] 2025/11/17 - 04:33:16 | 201 |    3.122926ms |             ::1 | POST     "/pullRequest/reassign"
+=== RUN   TestE2ETestSuite/TestTeam_CreateAndGet
+[GIN] 2025/11/17 - 04:33:16 | 201 |    2.431098ms |             ::1 | POST     "/team/add"
+[GIN] 2025/11/17 - 04:33:16 | 200 |     740.738µs |             ::1 | GET      "/team/get?team_name=backend-team"
+=== RUN   TestE2ETestSuite/TestTeam_InvalidRequest
+[GIN] 2025/11/17 - 04:33:16 | 400 |      17.743µs |             ::1 | POST     "/team/add"
+=== RUN   TestE2ETestSuite/TestTeam_NotFound
+2025/11/17 04:33:16 Error getting team: entity not found in db
+[GIN] 2025/11/17 - 04:33:16 | 404 |     481.418µs |             ::1 | GET      "/team/get?team_name=nonexistent"
+2025/11/17 04:33:16 Tearing down test suite...
+2025/11/17 04:33:16 🐳 Stopping container: 0edb9ba08ae6
+2025/11/17 04:33:17 ✅ Container stopped: 0edb9ba08ae6
+2025/11/17 04:33:17 🐳 Terminating container: 0edb9ba08ae6
+2025/11/17 04:33:17 🚫 Container terminated: 0edb9ba08ae6
+2025/11/17 04:33:17 PostgreSQL container terminated
+--- PASS: TestE2ETestSuite (5.59s)
+    --- PASS: TestE2ETestSuite/TestPullRequest_CreateMergeAndReassign (0.02s)
+    --- PASS: TestE2ETestSuite/TestPullRequest_NotFound (0.00s)
+    --- PASS: TestE2ETestSuite/TestPullRequest_ReassignReviewer (0.01s)
+    --- PASS: TestE2ETestSuite/TestTeam_CreateAndGet (0.00s)
+    --- PASS: TestE2ETestSuite/TestTeam_InvalidRequest (0.00s)
+    --- PASS: TestE2ETestSuite/TestTeam_NotFound (0.00s)
+PASS
+ok      github.com/stannisl/pull-request-service/tests/e2e      5.635s
+```
+
 ### Нагрузочное тестирование
+
+Запуск нагрузочных тестов (требуется k6):
+```bash
+make test-load
+```
 
 #### Целевые показатели
 
