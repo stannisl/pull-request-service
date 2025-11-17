@@ -10,7 +10,7 @@ type TransactionManager interface {
 	WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
-type txKey struct{}
+type TxKey struct{}
 
 type txManager struct {
 	db *sqlx.DB
@@ -21,7 +21,7 @@ func NewTransactionManager(db *sqlx.DB) TransactionManager {
 }
 
 func (tm *txManager) WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
-	if _, ok := ctx.Value(txKey{}).(*sqlx.Tx); ok {
+	if _, ok := ctx.Value(TxKey{}).(*sqlx.Tx); ok {
 		return fn(ctx)
 	}
 
@@ -30,7 +30,7 @@ func (tm *txManager) WithTransaction(ctx context.Context, fn func(ctx context.Co
 		return err
 	}
 
-	txCtx := context.WithValue(ctx, txKey{}, tx)
+	txCtx := context.WithValue(ctx, TxKey{}, tx)
 
 	defer func() {
 		if p := recover(); p != nil {

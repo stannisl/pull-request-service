@@ -20,7 +20,7 @@ func NewBaseRepository(db *sqlx.DB, txManager db.TransactionManager) *BaseReposi
 }
 
 func (r *BaseRepository) GetExecutor(ctx context.Context) sqlx.ExtContext {
-	if tx, ok := ctx.Value("tx").(*sqlx.Tx); ok {
+	if tx, ok := ctx.Value(db.TxKey{}).(*sqlx.Tx); ok {
 		return tx
 	}
 	return r.db

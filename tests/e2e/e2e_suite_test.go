@@ -139,10 +139,7 @@ func (suite *E2ETestSuite) waitForAppReady() {
 
 func (suite *E2ETestSuite) TearDownSuite() {
 	log.Println("Tearing down test suite...")
-
-	if suite.app != nil {
-	}
-
+	
 	if suite.postgresContainer != nil {
 		if err := suite.postgresContainer.Terminate(suite.ctx); err != nil {
 			log.Printf("Failed to terminate postgres container: %v", err)
@@ -171,11 +168,6 @@ func (suite *E2ETestSuite) makeRequest(method, path string, body interface{}) (*
 
 	req.Header.Set("Content-Type", "application/json")
 	return suite.httpClient.Do(req)
-}
-
-func (suite *E2ETestSuite) parseResponse(resp *http.Response, target interface{}) error {
-	defer resp.Body.Close()
-	return json.NewDecoder(resp.Body).Decode(target)
 }
 
 func TestE2ETestSuite(t *testing.T) {

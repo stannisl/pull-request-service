@@ -20,3 +20,9 @@ linters:
     - unparam # находит параметры функций, которые никогда не используются
     - whitespace # тест на двойные пробелы, trailing spaces
     - lll # на длину строк
+
+  exclusions:
+    rules:
+      - path: '.*_test.go' # Не проверять на не проверяемую ошибку тестовые файлы
+        linters:
+          - errcheck
